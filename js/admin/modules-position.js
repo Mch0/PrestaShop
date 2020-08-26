@@ -165,8 +165,12 @@ $(function(){
 
 		var $this = $(this);
 		var hook_select = $("select[name='id_hook']");
+		var view_select = $("select[name='view_hook']");
 		var optgroup_unregistered = $('#hooks_unregistered');
 		var optgroup_registered = $('#hooks_registered');
+
+		//Refresh list view
+		view_select.find('option').remove();
 
 		if ($this.val() != 0)
 		{
@@ -208,6 +212,34 @@ $(function(){
 					}
 				}
 			});
+
+			$.ajax({
+        type: 'POST',
+        url: 'index.php',
+        async: true,
+        dataType: 'json',
+        data: {
+          action: 'getPossibleViewListForModule',
+          tab: 'AdminModulesPositions',
+          ajax: 1,
+          module_id: $this.val(),
+          token: token,
+        },
+        success: function(jsonData) {
+          if (jsonData.hasError) {
+            var errors = '';
+            for (var error in jsonData.errors)
+              if (error != 'indexOf')
+                errors += $('<div />').html(jsonData.errors[error]).text() + "\n";
+          } else {
+            for (var i = 0; i < jsonData.length; i++) {
+              view_select.append('<option value="' + jsonData[i] + '">' + jsonData[i] + '</option>');
+            }
+            view_select.prop('disabled', false);
+            $("select[name='view_hook'] option[value='0']").remove();
+          }
+        }
+      });
 		}
 	})
 

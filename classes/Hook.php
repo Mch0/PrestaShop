@@ -473,7 +473,7 @@ class HookCore extends ObjectModel
         return !empty($rows);
     }
 
-    public static function registerHook($module_instance, $hook_name, $shop_list = null)
+    public static function registerHook($module_instance, $hook_name, $shop_list = null, $view = null)
     {
         $return = true;
         if (is_array($hook_name)) {
@@ -544,6 +544,7 @@ class HookCore extends ObjectModel
                     'id_module' => (int) $module_instance->id,
                     'id_hook' => (int) $id_hook,
                     'id_shop' => (int) $shop_id,
+                    'view_path' => $view,
                     'position' => (int) ($position + 1),
                 ]);
 

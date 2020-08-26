@@ -77,6 +77,19 @@
 				</select>
 			</div>
 		</div>
+    <div class="form-group">
+      <label class="control-label col-lg-3 required"> {l s='View to display' d='Admin.Design.Feature'}</label>
+      <div class="col-lg-9">
+        <select name="view_hook"  {if !$possible_views|@count}disabled="disabled"{/if}>
+          <option value="0">{l s='Select a module above before choosing a view' d='Admin.Design.Help'}</option>
+          <optgroup id="possible_views" label="{l s='Views available' d='Admin.Design.Feature'}">
+            {foreach $possible_views as $view}
+              <option value="{$view}" {if $view == $used_view}selected="selected"{/if}>{$view}</option>
+            {/foreach}
+          </optgroup>
+        </select>
+      </div>
+    </div>
 		<div class="form-group">
 			<label class="control-label col-lg-3">{l s='Exceptions' d='Admin.Design.Feature'}</label>
 			<div class="col-lg-9">

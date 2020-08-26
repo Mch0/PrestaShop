@@ -986,9 +986,9 @@ abstract class ModuleCore implements ModuleInterface
      *
      * @return bool result
      */
-    public function registerHook($hook_name, $shop_list = null)
+    public function registerHook($hook_name, $shop_list = null, $view = null)
     {
-        return Hook::registerHook($this, $hook_name, $shop_list);
+        return Hook::registerHook($this, $hook_name, $shop_list, $view);
     }
 
     /**
@@ -3383,6 +3383,42 @@ abstract class ModuleCore implements ModuleInterface
         }
 
         return $possible_hooks_list;
+    }
+
+    /**
+     * Return views list available for Module Widget
+     * Tpl is search in $module/views/templates/hook/; $module/views/templates/front; $module/
+     *
+     * @return array views list
+     */
+    public function getPossibleViewsList(): array
+    {
+        if ($this instanceof WidgetInterface) {
+            $viewsHookPath = $this->getLocalPath() . 'views/templates/hook/';
+            $viewsFrontPath = $this->getLocalPath() . 'views/templates/front/';
+            $viewsModulePath = $this->getLocalPath();
+            $possibleHookViews = glob($viewsHookPath . '*.tpl');
+            $possibleFrontViews = glob($viewsFrontPath . '*.tpl');
+            $possibleModuleViews = glob($viewsModulePath . '*.tpl');
+            $possibleViews = array_merge($possibleHookViews, $possibleFrontViews, $possibleModuleViews);
+            foreach ($possibleViews as $îndex => $viewPath) {
+                $possibleViews[$îndex] = str_replace($this->getLocalPath(), $this->name . '/', $viewPath);
+            }
+            return $possibleViews;
+        }
+    }
+
+    /**
+     * Return the view used for this hook module
+     * @return string|null
+     */
+    public function getViewForHook(int $idHook): ?string
+    {
+        return Db::getInstance()->getValue(
+            'SELECT view_path
+                    FROM ' . _DB_PREFIX_.'hook_module
+                    WHERE id_hook = ' . $idHook .
+                    ' AND id_module = ' . (int)$this->id);
     }
 
     /**

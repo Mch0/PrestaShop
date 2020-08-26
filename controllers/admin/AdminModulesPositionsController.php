@@ -84,7 +84,10 @@ class AdminModulesPositionsControllerCore extends AdminController
                 $id_module = (int) Tools::getValue('id_module');
                 $module = Module::getInstanceById($id_module);
                 $id_hook = (int) Tools::getValue('id_hook');
+                $view_name = Tools::isEmpty((string)Tools::getValue('view_hook')) ? NULL : (string)Tools::getValue('view_hook');
+
                 $hook = new Hook($id_hook);
+
 
                 if (!$id_module || !Validate::isLoadedObject($module)) {
                     $this->errors[] = $this->trans('This module cannot be loaded.', [], 'Admin.Modules.Notification');
@@ -96,7 +99,7 @@ class AdminModulesPositionsControllerCore extends AdminController
                     $this->errors[] = $this->trans('This module cannot be transplanted to this hook.', [], 'Admin.Modules.Notification');
                 } else {
                     // Adding vars...
-                    if (!$module->registerHook($hook->name, Shop::getContextListShopID())) {
+                    if (!$module->registerHook($hook->name, Shop::getContextListShopID(), $view_name)) {
                         $this->errors[] = $this->trans('An error occurred while transplanting the module to its hook.', [], 'Admin.Modules.Notification');
                     } else {
                         $exceptions = Tools::getValue('exceptions');
@@ -403,6 +406,12 @@ class AdminModulesPositionsControllerCore extends AdminController
         foreach ($excepts_list as $shop_id => $file_list) {
             $exception_list_diff[] = $this->displayModuleExceptionList($file_list, $shop_id);
         }
+        $possible_views = [];
+        $used_view = '';
+        if (Tools::getIsset('id_module') && Tools::getIsset('id_hook')) {
+            $possible_views = $module_instance->getPossibleViewsList();
+            $used_view = $module_instance->getViewForHook((int)Tools::getValue('id_hook'));
+        }
 
         $tpl = $this->createTemplate('form.tpl');
         $tpl->assign([
@@ -410,6 +419,8 @@ class AdminModulesPositionsControllerCore extends AdminController
             'edit_graft' => Tools::isSubmit('editGraft'),
             'id_module' => (int) Tools::getValue('id_module'),
             'id_hook' => (int) Tools::getValue('id_hook'),
+            'used_view' => $used_view,
+            'possible_views' => $possible_views,
             'show_modules' => $show_modules,
             'hooks' => $hooks,
             'exception_list' => $this->displayModuleExceptionList(array_shift($excepts_list), 0),
@@ -640,5 +651,23 @@ class AdminModulesPositionsControllerCore extends AdminController
 
         $module_instance = Module::getInstanceById($module_id);
         die(json_encode($module_instance->getPossibleHooksList()));
+    }
+
+    /**
+     * Return a json array containing the possible view for a Widget module
+     */
+    public function ajaxProcessGetPossibleViewListForModule()
+    {
+        $module_id = (int) Tools::getValue('module_id');
+        if ($module_id == 0) {
+            die('{"hasError" : true, "errors" : ["Wrong module ID."]}');
+        }
+
+        $module_instance = Module::getInstanceById($module_id);
+        if (!$module_instance instanceof \PrestaShop\PrestaShop\Core\Module\WidgetInterface) {
+            die();
+        }
+
+        die(json_encode($module_instance->getPossibleViewsList()));
     }
 }
